@@ -4,6 +4,7 @@ local scene = composer.newScene()
 
 local score = 0
 local touchEvent
+local showWin = false
 
 -- r, g, b, text
 local colors = {
@@ -64,6 +65,14 @@ function scene:create( event )
         scoreUI.text(score)
     end
 
+    local winGroup = newGroup(sceneGroup)
+    newRect(winGroup, 0, 0, 320, 568, {0, 0, 0, 0.5}, topLeft)
+    newText(winGroup, "You Win!", 160, 200, 40, center, {1, 1, 0})
+    newText(winGroup, "Score", 160, 270, 20, center, {1, 1, 1})
+    local winScore = newText(winGroup, "", 160, 300, 40, center, {1, 1, 1})
+    newText(winGroup, "Touch to continue", 160, 380, 20, center, {1, 1, 1})
+    winGroup.alpha = 0
+
     local makeTile = function(x, y, n)
         local tile = newGroup(sceneGroup)
 
@@ -85,6 +94,12 @@ function scene:create( event )
         tile.upgrading = false
         tile.toUpgrade = false
 
+        if showWin then
+            winGroup:toFront()
+            transition.to(winGroup, {time=300, alpha=1})
+            winScore.text = score
+        end
+
         if n == 4 then
             tile.rect.fill = {colors[tile.level][1]/255, colors[tile.level][2]/255, colors[tile.level][3]/255}
         end
@@ -104,7 +119,6 @@ function scene:create( event )
                 tiles[tile.ty][tile.tx] = nil
                 tile:toBack()
             end
-            debugprint()
           
             transition.to(tile, {time=200, x=tilex(nx)+32, y=tiley(ny)+32, transition=easing.inOutExpo, onComplete=function()
                 tile.moving = false
@@ -136,7 +150,10 @@ function scene:create( event )
                 transition.to(tile, {time=100, xScale=1.2, yScale=1.2, onComplete=function()
                     transition.to(tile, {time=100, xScale=1, yScale=1})
                 end})
-                debugprint()
+
+                if tile.number == 2048 then
+                    showWin = true                    
+                end
             end
         end
 
@@ -269,27 +286,33 @@ function scene:create( event )
 
     local moved, tsx, tsy
     touchEvent = function(e)
-        if e.phase == "began" then
-            tsx, tsy = e.x, e.y
-            moved = false
-        elseif e.phase == "moved" and not moved then
-            if math.abs(e.y - tsy) > 100 then
-                if e.y > tsy then
-                    moving("down") 
-                    moved = true
-                else
-                    moving("up") 
-                    moved = true end
-            elseif math.abs(e.x - tsx) > 100 then
-                if e.x > tsx then
-                    moving("right") 
-                    moved = true
-                else
-                    moving("left")
-                    moved = true end
+        if showWin then
+            if e.phase == "began" then
+                showWin = false
+                transition.to(winGroup, {time=200, alpha=0})
             end
-        elseif e.phase == "ended" then
-            debugprint()
+        else
+            if e.phase == "began" then
+                tsx, tsy = e.x, e.y
+                moved = false
+            elseif e.phase == "moved" and not moved then
+                if math.abs(e.y - tsy) > 100 then
+                    if e.y > tsy then
+                        moving("down") 
+                        moved = true
+                    else
+                        moving("up") 
+                        moved = true end
+                elseif math.abs(e.x - tsx) > 100 then
+                    if e.x > tsx then
+                        moving("right") 
+                        moved = true
+                    else
+                        moving("left")
+                        moved = true end
+                end
+            elseif e.phase == "ended" then
+            end
         end
     end
     Runtime:addEventListener( "touch", touchEvent )
