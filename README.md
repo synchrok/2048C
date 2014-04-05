@@ -1,7 +1,8 @@
-
 #2048C
 
-Clone of 2048(https://github.com/gabrielecirulli/2048) by Corona SDK
+Clone of [2048](https://github.com/gabrielecirulli/2048) for [Corona SDK](http://coronalabs.com/).
+
+You can build this game to Android or iOS with using [Corona SDK](http://coronalabs.com/).
 
 ### Screenshot
 
